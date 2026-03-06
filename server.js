@@ -7,7 +7,7 @@ app.use(express.json());
 
 app.post("/incoming-call", (req, res) => {
 
-    const from = (req.body.From || "").replace("+","");
+    const from = (req.body.From || "").replace("+", "");
     console.log("Incoming call from:", from);
 
     let primary = "";
@@ -32,16 +32,16 @@ app.post("/incoming-call", (req, res) => {
     // OTHER REGION
     else {
 
-        primary = "917070632861";  // Mehar
-        fallback = "917207097300"; // Kishwari 2
+        primary = "917070632861";  
+        fallback = "917207097300"; 
 
     }
 
     const responseXML = `
 <Response>
-    <Connect timeout="25">
-        <Number>${primary}</Number>
-        <Number>${fallback}</Number>
+    <Connect>
+        <Number timeout="25">${primary}</Number>
+        <Number timeout="25">${fallback}</Number>
     </Connect>
 </Response>
 `;
@@ -51,6 +51,6 @@ app.post("/incoming-call", (req, res) => {
 
 });
 
-app.listen(5000, () => {
-    console.log("Server running on port 5000");
+app.listen(process.env.PORT || 5000, () => {
+    console.log("Server running");
 });
