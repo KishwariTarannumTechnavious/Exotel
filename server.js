@@ -48,23 +48,24 @@ app.post("/incoming-call", async (req, res) => {
  * 2️⃣ CALL STATUS CALLBACK
  */
 app.post("/call-status", async (req, res) => {
-  const callSid = req.body.CallSid;
+  const parentCallId = req.body.CustomField; // 🔥 USE THIS
   const status = req.body.Status;
 
-  console.log("📡 Call status:", status);
+  console.log("📡 Call status:", status, "Parent:", parentCallId);
 
-  if (!callStore[callSid]) {
+  if (!parentCallId || !callStore[parentCallId]) {
     return res.send("OK");
   }
 
   if (status === "answered") {
     console.log("✅ Call answered. Stopping sequence.");
-    delete callStore[callSid];
+    delete callStore[parentCallId];
+    return res.send("OK");
   }
 
-  if (status === "no-answer" || status === "busy" || status === "failed") {
-    callStore[callSid].index++;
-    await dialAgent(callSid);
+  if (["no-answer", "busy", "failed"].includes(status)) {
+    callStore[parentCallId].index++;
+    await dialAgent(parentCallId);
   }
 
   res.send("OK");
@@ -73,11 +74,11 @@ app.post("/call-status", async (req, res) => {
 /**
  * 3️⃣ DIAL AGENT (ONE AT A TIME)
  */
-async function dialAgent(callSid) {
-  const data = callStore[callSid];
+async function dialAgent(parentCallId) {
+  const data = callStore[parentCallId];
   if (!data || data.index >= data.agents.length) {
     console.log("❌ No agents left");
-    delete callStore[callSid];
+    delete callStore[parentCallId];
     return;
   }
 
@@ -91,7 +92,12 @@ async function dialAgent(callSid) {
       From: EXOTEL_CALLER_ID,
       To: agent,
       CallerId: EXOTEL_CALLER_ID,
-      StatusCallback: "https://exotel-qk7x.onrender.com/call-status"
+
+      // 🔥 THIS IS THE FIX
+      CustomField: parentCallId,
+
+      StatusCallback: "https://exotel-qk7x.onrender.com/call-status",
+      StatusCallbackEvents: "answered,completed,busy,no-answer,failed"
     }
   });
 }
