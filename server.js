@@ -8,7 +8,7 @@ app.use(express.json());
 // 🔐 Exotel credentials (use ENV in production)
 const EXOTEL_SID = process.env.EXOTEL_SID;
 const EXOTEL_TOKEN = process.env.EXOTEL_TOKEN;
-const EXOTEL_CALLER_ID = "022XXXXXXXX"; // your Exotel virtual number
+const EXOTEL_CALLER_ID = process.env.EXOTEL_CALLER_ID; // your Exotel virtual number
 
 // 🧠 In-memory store (use DB/Redis in prod)
 const callStore = {};
@@ -26,8 +26,10 @@ app.post("/incoming-call", async (req, res) => {
 
   if (from.startsWith("91")) {
     agents = ["917070632861", "917043200743"];
+
   } else if (from.startsWith("1")) {
     agents = ["919304128815", "917043200743"];
+
   } else {
     agents = ["917070632861", "917207097300"];
   }
